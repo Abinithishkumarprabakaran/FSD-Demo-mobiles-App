@@ -35,14 +35,34 @@ function ProtectedRoute({ children }) {
   )
 }
 
+function checkAuth(res) {
+  if(res.status === 401) {
+    throw Error('unauthorized');
+  }
+  else {
+    return res.json();
+  }
+}
+
+function logout() {
+  localStorage.clear();
+  // localStorage.removeItem('token');
+  window.location.href = '/' //refresh
+}
+
 function PhoneList() {
 
   const [mobileList, setMobileList] = useState([])
 
   const getMobiles = () => {
-    fetch("http://localhost:4000/mobiles")
-      .then((res) => res.json())
-      .then((data) => setMobileList(data));
+    fetch("http://localhost:4000/mobiles", {
+      headers: {
+        "x-auth-token" : localStorage.getItem("token"),
+      }
+    })
+      .then((res) => checkAuth(res))
+      .then((data) => setMobileList(data))
+      .catch(err => logout())
   }
 
   useEffect(() => getMobiles(),[])
